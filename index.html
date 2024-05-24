@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>Todo App</title>
+  </head>
+  <body>
+    <div>
+      <input
+        type="text"
+        id="title"
+        class="input input--title"
+        placeholder="Title"
+      />
+      <input
+        type="text"
+        id="description"
+        class="input input--description"
+        placeholder="Description"
+      />
+      <button id="createTodoButton" class="button button--createTodo">
+        Create Todo
+      </button>
+      <div id="mainArea"></div>
+    </div>
+    <script type="module">
+      import { BACKEND_URL } from "./constants.js";
+
+      function onDelete(id) {
+        fetch(`${BACKEND_URL}/todos/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }).then(() => {
+          const reqId = id.toString();
+          const child = document.getElementById(reqId);
+          console.log(child);
+          child.remove();
+          console.log("deleted successfully");
+        });
+      }
+
+      function onPress() {
+        const title = document.getElementById("title").value;
+        const description = document.getElementById("description").value;
+        fetch(`${BACKEND_URL}/todos`, {
+          method: "POST",
+          body: JSON.stringify({
+            title,
+            description,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }).then((response) => {
+          response.json().then((data) => {
+            const parent = document.getElementById("mainArea");
+            let child = document.createElement("div");
+            child.setAttribute("id", data.id);
+            let grandChild1 = document.createElement("span");
+            let grandChild2 = document.createElement("span");
+            let grandChild3 = document.createElement("button");
+            grandChild1.innerHTML = " Title: " + data.title + " ";
+            grandChild2.innerHTML = " Description: " + data.description;
+            grandChild3.innerHTML = "Delete";
+            grandChild3.addEventListener("click", () => onDelete(data.id));
+            child.appendChild(grandChild1);
+            child.appendChild(grandChild2);
+            child.appendChild(grandChild3);
+            parent.appendChild(child);
+          });
+        });
+      }
+
+      function getData() {
+        fetch(`${BACKEND_URL}/todos`, {
+          method: "GET",
+        }).then((response) => {
+          response.json().then((data) => {
+            data.map((x) => {
+              const parent = document.getElementById("mainArea");
+              let child = document.createElement("div");
+              child.classList.add("todo-item"); // Add class for styling
+              child.setAttribute("id", x.id);
+              let grandChild1 =  document.createElement("div");
+              let grandGrandChild1_1 = document.createElement("span");
+              let grandGrandChild1_2 = document.createElement("span");
+              let grandChild2 =  document.createElement("div");
+              let grandGrandChild2_1 = document.createElement("button");
+              grandGrandChild1_1.innerHTML = " Title: " + x.title + ", ";
+              grandGrandChild1_2.innerHTML = " Description: " + x.description;
+              grandGrandChild2_1.innerHTML = "Delete";
+              grandGrandChild2_1.classList.add("delete-button"); // Add class for styling
+              grandGrandChild2_1.addEventListener("click", () => onDelete(x.id));
+              grandChild1.appendChild(grandGrandChild1_1);
+              grandChild1.appendChild(grandGrandChild1_2);
+              grandChild2.appendChild(grandGrandChild2_1);
+              child.appendChild(grandChild1);
+              child.appendChild(grandChild2);
+              parent.appendChild(child);
+            });
+          });
+        });
+      }
+
+      document
+        .getElementById("createTodoButton")
+        .addEventListener("click", onPress);
+
+      getData();
+    </script>
+  </body>
+</html>
